@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🚩 चौपाटी तरुण मंडळ , गोरंबे 🚩</title>
+
+  <!-- Google Font: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase v8 (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    :root { --orange:#ff9933; --red:#ff3300; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fff8dc;
+      margin: 0; padding: 0;
+    }
+    header {
+      position: sticky; top: 0;
+      background: linear-gradient(90deg, var(--orange), var(--red));
+      color: #fff; padding: 18px 20px;
+      font-size: 20px; font-weight: 700;
+      text-align: center;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #222;
+      color: #fff;
+      font-weight: 600;
+    }
+    .stats-bar div {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      border-radius: 6px;
+      margin: 0 4px;
+    }
+    #totalCredit { background:#2e7d32; }  /* हिरवा */
+    #balance { background:#1565c0; }      /* निळा */
+    #totalDebit { background:#c62828; }   /* लाल */
+
+    .wrap { max-width: 95%; margin: auto; padding: 16px; }
+    h2 { margin: 16px 0 8px; font-weight: 700; text-align:center; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    input, select {
+      flex: 1 1 160px;
+      padding: 10px; font-size: 14px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    button {
+      background: linear-gradient(45deg, var(--orange), var(--red));
+      border: none; color: #fff;
+      padding: 10px 16px; border-radius: 6px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: .2s;
+    }
+    button:hover { opacity: .9; }
+    #status { margin: 8px 0; min-height: 20px; font-size: 14px; text-align:center; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      margin: 14px 0 24px; font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #333; padding: 8px;
+      text-align: center;
+    }
+    th { background: #f0f0f0; font-weight:600; }
+    .credit { background: #d4f8d4; } /* हिरवा */
+    .debit  { background: #f8d4d4; } /* लाल  */
+
+    /* Mobile friendly */
+    @media(max-width:600px){
+      header { font-size:18px; }
+      .stats-bar { flex-direction: column; }
+      .stats-bar div { margin:6px 0; }
+      input, select, button { flex: 1 1 100%; font-size: 14px; }
+      th, td { font-size: 12px; padding:6px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🚩 चौपाटी तरुण मंडळ, गोरंबे 🚩
+  </header>
+
+  <!-- Credit / Balance / Debit stats bar -->
+  <div class="stats-bar">
+    <div id="totalCredit">एकूण जमा: ₹0</div>
+    <div id="balance">शिल्लक: ₹0</div>
+    <div id="totalDebit">एकूण खर्च: ₹0</div>
+  </div>
+
+  <div class="wrap">
+    <h2>नोंद जोडा</h2>
+    <div class="form-row">
+      <input type="date" id="date" />
+      <input type="number" id="amount" placeholder="रक्कम (₹)" />
+      <input type="text" id="note" placeholder="नोंद" />
+      <select id="type">
+        <option value="credit">Credit (जमा)</option>
+        <option value="debit">Debit (खर्च)</option>
+      </select>
+      <button id="addBtn">नोंद जोडा</button>
+      <button id="csvBtn">📥 इतिहास डाउनलोड (CSV)</button>
+    </div>
+    <div id="status"></div>
+
+    <h2>सर्वांचा इतिहास</h2>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>तारीख</th>
+          <th>रक्कम (₹)</th>
+          <th>प्रकार</th>
+          <th>नोंद</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // 🔐 Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1uAv_Nh3RspOmBHbfzwUcvQfdE5Hzoqo",
+      authDomain: "choupati-tarun-mandal.firebaseapp.com",
+      projectId: "choupati-tarun-mandal",
+      storageBucket: "choupati-tarun-mandal.firebasestorage.app",
+      messagingSenderId: "576531949280",
+      appId: "1:576531949280:web:447105081c8dc666435285",
+      measurementId: "G-2WCJQVJNER"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // UI refs
+    const dateEl = document.getElementById('date');
+    const amountEl = document.getElementById('amount');
+    const noteEl = document.getElementById('note');
+    const typeEl = document.getElementById('type');
+    const addBtn = document.getElementById('addBtn');
+    const csvBtn = document.getElementById('csvBtn');
+    const statusEl = document.getElementById('status');
+
+    const totalCreditEl = document.getElementById('totalCredit');
+    const totalDebitEl = document.getElementById('totalDebit');
+    const balanceEl = document.getElementById('balance');
+    const tbody = document.querySelector('#recordsTable tbody');
+
+    let totalCredit = 0, totalDebit = 0;
+    let allRecords = [];
+
+    // Add record
+    addBtn.addEventListener('click', async () => {
+      const date = dateEl.value;
+      const amount = parseFloat(amountEl.value);
+      const note = noteEl.value.trim();
+      const type = typeEl.value;
+
+      if(!date || !amount || !note){
+        statusEl.textContent = '❗ कृपया तारीख, रक्कम आणि नोंद भरा.';
+        return;
+      }
+
+      try {
+        const newRef = db.ref('records').push();
+        await newRef.set({ date, amount, note, type });
+        statusEl.textContent = '✅ नोंद सेव्ह झाली.';
+        dateEl.value = ''; amountEl.value = ''; noteEl.value = '';
+      } catch (err) {
+        statusEl.textContent = '❌ सेव्ह करताना त्रुटी: ' + err.message;
+        console.error(err);
+      }
+    });
+
+    // Rebuild table whenever data changes
+    db.ref('records').on('value', (snap) => {
+      tbody.innerHTML = '';
+      totalCredit = 0; totalDebit = 0;
+      allRecords = [];
+
+      snap.forEach(child => {
+        const r = child.val();
+        const tr = document.createElement('tr');
+        tr.className = (r.type === 'credit') ? 'credit' : 'debit';
+        tr.innerHTML =
+          `<td>${r.date||''}</td>
+           <td>₹${Number(r.amount||0)}</td>
+           <td>${r.type==='credit'?'जमा':'खर्च'}</td>
+           <td>${r.note||''}</td>`;
+        tbody.appendChild(tr);
+
+        const amt = Number(r.amount||0);
+        if (r.type === 'credit') totalCredit += amt;
+        else totalDebit += amt;
+
+        allRecords.push([r.date, amt, (r.type==='credit'?'जमा':'खर्च'), r.note]);
+      });
+
+      // Update stats
+      const balance = totalCredit - totalDebit;
+      totalCreditEl.textContent = 'एकूण जमा: ₹' + totalCredit;
+      totalDebitEl.textContent = 'एकूण खर्च: ₹' + totalDebit;
+      balanceEl.textContent = 'शिल्लक: ₹' + balance;
+    });
+
+    // CSV download
+    csvBtn.addEventListener('click', () => {
+      let csv = "तारीख,रक्कम,प्रकार,नोंद\n" + allRecords.map(r => r.map(x => {
+        const s = (x ?? '').toString().replace(/"/g,'""');
+        return /[,\"\n]/.test(s) ? `"${s}"` : s;
+      }).join(',')).join('\n');
+
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'mandal_history.csv';
+      document.body.appendChild(a); a.click();
+      URL.revokeObjectURL(url); a.remove();
+    });
+  </script>
+</body>
+</html>
