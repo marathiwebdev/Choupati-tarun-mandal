@@ -1,206 +1,211 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🚩 चौपाटी तरुण मंडळ , गोरंबे 🚩</title>
+
+  <!-- Google Font: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase v8 (CDN) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
+    :root { --orange:#ff9933; --red:#ff3300; }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
       background: #fff8dc;
-      text-align: center;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
     }
     header {
-      background: linear-gradient(90deg, #ff9933, #ff3300);
-      color: white;
-      padding: 20px;
-      font-size: 28px;
-      font-weight: 700;
-      position: relative;
+      position: sticky; top: 0;
+      background: linear-gradient(90deg, var(--orange), var(--red));
+      color: #fff; padding: 18px 20px;
+      font-size: 20px; font-weight: 700;
+      text-align: center;
     }
     #balance {
-      position: absolute;
-      right: 20px;
-      top: 20px;
-      background: #222;
-      color: #fff;
-      padding: 8px 15px;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: 600;
+      background: #222; color:#fff;
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 16px; font-weight: 600;
+      display: inline-block;
+      margin-top: 10px;
     }
-    h2 {
-      margin-top: 20px;
-      font-weight: 600;
+    .wrap { max-width: 95%; margin: auto; padding: 16px; }
+    h2 { margin: 16px 0 8px; font-weight: 700; text-align:center; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    input, select {
+      flex: 1 1 160px;
+      padding: 10px; font-size: 14px;
+      border: 1px solid #ccc; border-radius: 6px;
     }
+    button {
+      background: linear-gradient(45deg, var(--orange), var(--red));
+      border: none; color: #fff;
+      padding: 10px 16px; border-radius: 6px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: .2s;
+    }
+    button:hover { opacity: .9; }
+    #status { margin: 8px 0; min-height: 20px; font-size: 14px; text-align:center; }
+
     table {
-      width: 90%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      font-size: 18px;
+      width: 100%; border-collapse: collapse;
+      margin: 14px 0 24px; font-size: 14px;
     }
     th, td {
-      border: 2px solid #333;
-      padding: 10px;
+      border: 1px solid #333; padding: 8px;
+      text-align: center;
     }
-    th {
-      background: #f0f0f0;
-    }
-    .credit { background-color: #d4f8d4; } /* हिरवा */
-    .debit { background-color: #f8d4d4; } /* लाल */
-    button {
-      background: linear-gradient(45deg, #ff9933, #ff3300);
-      border: none;
-      color: white;
-      padding: 10px 18px;
-      margin: 10px;
-      cursor: pointer;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-    button:hover {
-      opacity: 0.8;
-    }
-    input, select {
-      padding: 8px;
-      margin: 6px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    #chartContainer {
-      width: 80%;
-      margin: 30px auto;
+    th { background: #f0f0f0; font-weight:600; }
+    .credit { background: #d4f8d4; } /* हिरवा */
+    .debit  { background: #f8d4d4; } /* लाल  */
+
+    /* Mobile friendly */
+    @media(max-width:600px){
+      header { font-size:18px; }
+      #balance { font-size:14px; padding:6px 10px; }
+      input, select, button { flex: 1 1 100%; font-size: 14px; }
+      th, td { font-size: 12px; padding:6px; }
     }
   </style>
 </head>
 <body>
   <header>
-    🚩 चौपाटी तरुण मंडळ , गोरंबे 🚩
+    🚩 चौपाटी तरुण मंडळ, गोरंबे🚩
     <div id="balance">शिल्लक: ₹0</div>
   </header>
 
-  <h2>नोंद जोडा</h2>
-  <input type="date" id="date"><br>
-  <input type="number" id="amount" placeholder="रक्कम (₹)"><br>
-  <input type="text" id="note" placeholder="नोंद"><br>
-  
-  <select id="type">
-    <option value="credit">Credit (जमा )</option>
-    <option value="debit">Debit (खर्च)</option>
-  </select><br>
+  <div class="wrap">
+    <h2>नोंद जोडा</h2>
+    <div class="form-row">
+      <input type="date" id="date" />
+      <input type="number" id="amount" placeholder="रक्कम (₹)" />
+      <input type="text" id="note" placeholder="नोंद" />
+      <select id="type">
+        <option value="credit">Credit (जमा)</option>
+        <option value="debit">Debit (खर्च)</option>
+      </select>
+      <button id="addBtn">नोंद जोडा</button>
+      <button id="csvBtn">📥 इतिहास डाउनलोड (CSV)</button>
+    </div>
+    <div id="status"></div>
 
-  <button onclick="addRecord()">नोंद जोडा</button>
-
-  <h2>सर्वांचा इतिहास</h2>
-  <table id="recordsTable">
-    <tr>
-      <th>तारीख</th>
-      <th>रक्कम (₹)</th>
-      <th>प्रकार</th>
-      <th>नोंद</th>
-    </tr>
-  </table>
-
-  <h2>📊 जमा vs खर्च</h2>
-  <div id="chartContainer">
-    <canvas id="financeChart"></canvas>
+    <h2>सर्वांचा इतिहास</h2>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>तारीख</th>
+          <th>रक्कम (₹)</th>
+          <th>प्रकार</th>
+          <th>नोंद</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
-    // Firebase Config
+    // 🔐 Firebase Config
     const firebaseConfig = {
-  // Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyAarxGMMLrVdM6r1-7p3Y1s9EMLtFZBCHE",
-  authDomain: "fir-40504.firebaseapp.com",
-  databaseURL: "https://fir-40504-default-rtdb.firebaseio.com/",   // ✅ ही ओळ नवीन
-  projectId: "fir-40504",
-  storageBucket: "fir-40504.firebasestorage.app",
-  messagingSenderId: "133340281936",
-  appId: "1:133340281936:web:076e92582342ff3b22e555",
-  measurementId: "G-CVCC5XLSCQ"
-};
+  apiKey: "AIzaSyD1uAv_Nh3RspOmBHbfzwUcvQfdE5Hzoqo",
+  authDomain: "choupati-tarun-mandal.firebaseapp.com",
+  databaseURL: "https://choupati-tarun-mandal-default-rtdb.firebaseio.com",
+  projectId: "choupati-tarun-mandal",
+  storageBucket: "choupati-tarun-mandal.firebasestorage.app",
+  messagingSenderId: "576531949280",
+  appId: "1:576531949280:web:447105081c8dc666435285",
+  measurementId: "G-2WCJQVJNER"
     };
 
-    // Initialize Firebase
+    // ✅ v8 style
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let totalBalance = 0;
-    let totalCredit = 0;
-    let totalDebit = 0;
+    // UI refs
+    const dateEl = document.getElementById('date');
+    const amountEl = document.getElementById('amount');
+    const noteEl = document.getElementById('note');
+    const typeEl = document.getElementById('type');
+    const addBtn = document.getElementById('addBtn');
+    const csvBtn = document.getElementById('csvBtn');
+    const statusEl = document.getElementById('status');
+    const balanceEl = document.getElementById('balance');
+    const tbody = document.querySelector('#recordsTable tbody');
 
-    // Chart.js Setup
-    const ctx = document.getElementById("financeChart").getContext("2d");
-    const financeChart = new Chart(ctx, {
-      type: "pie",
-      data: {
-        labels: ["जमा (Credit)", "खर्च (Debit)"],
-        datasets: [{
-          data: [0, 0],
-          backgroundColor: ["#4CAF50", "#F44336"]
-        }]
+    // Totals/State
+    let totalCredit = 0, totalDebit = 0;
+    let allRecords = [];
+
+    // Add record
+    addBtn.addEventListener('click', async () => {
+      const date = dateEl.value;
+      const amount = parseFloat(amountEl.value);
+      const note = noteEl.value.trim();
+      const type = typeEl.value;
+
+      if(!date || !amount || !note){
+        statusEl.textContent = '❗ कृपया तारीख, रक्कम आणि नोंद भरा.';
+        return;
+      }
+
+      try {
+        const newRef = db.ref('records').push();
+        await newRef.set({ date, amount, note, type });
+        statusEl.textContent = '✅ नोंद सेव्ह झाली.';
+        dateEl.value = ''; amountEl.value = ''; noteEl.value = '';
+      } catch (err) {
+        statusEl.textContent = '❌ सेव्ह करताना त्रुटी: ' + err.message;
+        console.error(err);
       }
     });
 
-    // Add Record
-    function addRecord() {
-      const date = document.getElementById("date").value;
-      const amount = parseFloat(document.getElementById("amount").value);
-      const note = document.getElementById("note").value;
-      const type = document.getElementById("type").value;
+    // Rebuild table whenever data changes
+    db.ref('records').on('value', (snap) => {
+      tbody.innerHTML = '';
+      totalCredit = 0; totalDebit = 0;
+      allRecords = [];
 
-      if(date && amount && note){
-        db.ref("records").push({
-          date: date,
-          amount: amount,
-          note: note,
-          type: type
-        });
-      }
+      snap.forEach(child => {
+        const r = child.val();
+        const tr = document.createElement('tr');
+        tr.className = (r.type === 'credit') ? 'credit' : 'debit';
+        tr.innerHTML =
+          `<td>${r.date||''}</td>
+           <td>₹${Number(r.amount||0)}</td>
+           <td>${r.type==='credit'?'जमा':'खर्च'}</td>
+           <td>${r.note||''}</td>`;
+        tbody.appendChild(tr);
 
-      document.getElementById("date").value = "";
-      document.getElementById("amount").value = "";
-      document.getElementById("note").value = "";
-    }
+        const amt = Number(r.amount||0);
+        if (r.type === 'credit') totalCredit += amt;
+        else totalDebit += amt;
 
-    // Show Records Live
-    const table = document.getElementById("recordsTable");
-    db.ref("records").on("child_added", function(snapshot) {
-      const data = snapshot.val();
-      const row = table.insertRow(-1);
+        allRecords.push([r.date, amt, (r.type==='credit'?'जमा':'खर्च'), r.note]);
+      });
 
-      row.className = (data.type === "credit") ? "credit" : "debit";
-      row.insertCell(0).innerText = data.date;
-      row.insertCell(1).innerText = "₹" + data.amount;
-      row.insertCell(2).innerText = (data.type === "credit") ? "आवक" : "खर्च";
-      row.insertCell(3).innerText = data.note;
+      // Balance
+      const balance = totalCredit - totalDebit;
+      balanceEl.textContent = 'शिल्लक: ₹' + balance;
+    });
 
-      if(data.type === "credit"){
-        totalBalance += parseFloat(data.amount);
-        totalCredit += parseFloat(data.amount);
-      } else {
-        totalBalance -= parseFloat(data.amount);
-        totalDebit += parseFloat(data.amount);
-      }
-      document.getElementById("balance").innerText = "शिल्लक: ₹" + totalBalance;
+    // CSV download
+    csvBtn.addEventListener('click', () => {
+      let csv = "तारीख,रक्कम,प्रकार,नोंद\n" + allRecords.map(r => r.map(x => {
+        const s = (x ?? '').toString().replace(/"/g,'""');
+        return /[,\"\n]/.test(s) ? `"${s}"` : s;
+      }).join(',')).join('\n');
 
-      financeChart.data.datasets[0].data = [totalCredit, totalDebit];
-      financeChart.update();
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'mandal_history.csv';
+      document.body.appendChild(a); a.click();
+      URL.revokeObjectURL(url); a.remove();
     });
   </script>
 </body>
 </html>
-
-
-
-
-
